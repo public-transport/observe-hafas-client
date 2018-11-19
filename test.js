@@ -219,7 +219,7 @@ test('trip', (t) => {
 	const emitter = listenFor('trip', (trip) => {
 		t.deepEqual(trip, t1)
 	})
-	const observed = observe(hafas, emitter, {trip: true})
+	const observed = observe(hafas, emitter, {trips: true})
 	observed.trip('1').catch(t.ifError)
 })
 
@@ -265,7 +265,7 @@ test('radar', (t) => {
 		const expected = i++ === 0 ? m1 : m2
 		t.deepEqual(movement, expected)
 	})
-	const observed = observe(hafas, emitter, {radar: true})
+	const observed = observe(hafas, emitter, {movements: true})
 	observed.radar({
 		north: 1.34, south: 1.12,
 		west: 2.23, east: 2.45

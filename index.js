@@ -39,7 +39,8 @@ const observeHafasClient = (hafas, emitter, watch) => {
 		wrapper.arrivals = observedArrivals
 	}
 
-	if ((watch.stopovers || watch.journeys) && hafas.journeys) {
+	const spyOnJourneys = watch.journeys || watch.legs || watch.stopovers
+	if (spyOnJourneys && hafas.journeys) {
 		const observedJourneys = (from, to, opt = {}) => {
 			return hafas.journeys(from, to, opt)
 			.then((journeys) => {
@@ -50,7 +51,8 @@ const observeHafasClient = (hafas, emitter, watch) => {
 		wrapper.journeys = observedJourneys
 	}
 
-	if ((watch.stopovers || watch.journeys) && hafas.refreshJourney) {
+	const spyOnRefreshJourney = watch.journeys || watch.legs || watch.stopovers
+	if (spyOnRefreshJourney && hafas.refreshJourney) {
 		const observedRefreshJourney = (refreshToken, opt = {}) => {
 			return hafas.refreshJourney(refreshToken, opt)
 			.then((journey) => {
@@ -61,7 +63,8 @@ const observeHafasClient = (hafas, emitter, watch) => {
 		wrapper.refreshJourney = observedRefreshJourney
 	}
 
-	if ((watch.stopovers || watch.radar) && hafas.trip) {
+	const spyOnTrip = watch.trips || watch.stopovers
+	if (spyOnTrip && hafas.trip) {
 		const observedTrip = (id, lineName, opt = {}) => {
 			return hafas.trip(id, lineName, opt)
 			.then((trip) => {
@@ -81,7 +84,8 @@ const observeHafasClient = (hafas, emitter, watch) => {
 		wrapper.trip = observedTrip
 	}
 
-	if ((watch.stopovers || watch.radar) && hafas.radar) {
+	const spyOnRadar = watch.movements || watch.stopovers
+	if (spyOnRadar && hafas.radar) {
 		const observedRadar = (bbox, opt = {}) => {
 			return hafas.radar(bbox, opt)
 			.then((movements) => {
