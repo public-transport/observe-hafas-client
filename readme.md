@@ -19,8 +19,39 @@ npm install observe-hafas-client
 ## Usage
 
 ```js
-todo
+const createHafas = require('db-hafas')
+const {EventEmitter} = require('events')
+const observe = require('observe-hafas-client')
+
+const hafas = createHafas('my-awesome-program')
+
+// set up observing
+const obverser = new EventEmitter()
+obverser.on('departure', console.log)
+const observedHafas = observe(hafasClient, {departures: true})
+
+// query data from HAFAS
+observedHafas.departures('8011160') // Berlin Hbf
+.then(console.log)
+.catch(console.error)
 ```
+
+
+## API
+
+```js
+observeHafasClient(hafas, emitter, watch)
+```
+
+`hafas` must be a `hafas-client` instance. `emitter` must be an [event emitter](https://nodejs.org/api/events.html#events_class_eventemitter). `watch` must be an object with one or more flags of the following list set to `true`:
+
+- `departures`: `departure` events emitted on `.departures()`
+- `arrivals`: `arrival` events emitted on `.arrivals()`
+- `journeys`: `journey` events emitted on `.journeys()`
+- `legs`: `leg` events emitted on `.journeys()`, `.refreshJourney()`
+- `stopovers`: `stopover` events emitted on `.journeys()`, `.refreshJourney()`, `.trip()`
+- `trips`: `trip` events emitted on `.journeys()`, `.refreshJourney()`, `.trip()`
+- `movements`: `movement` events emitted on `.radar()`
 
 
 ## Contributing
