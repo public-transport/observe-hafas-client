@@ -63,7 +63,7 @@ test('departures', (t) => {
 
 	t.plan(2 * 6)
 	let i = 0
-	const emitter = expectEvents('departure', (dep) => {
+	const emitter = listenFor('departure', (dep) => {
 		const expected = i++ === 0 ? dep1 : dep2
 		t.ok(dep)
 		t.equal(dep.tripId, expected.tripId)
@@ -108,4 +108,166 @@ test('arrivals', (t) => {
 	})
 	const observed = observe(hafas, emitter, {arrivals: true})
 	observed.arrivals('321').catch(t.ifError)
+})
+
+test('journeys', (t) => {
+	const j1 = {
+		type: 'journey',
+		id: 'journey-1',
+		legs: [{
+			origin: '123',
+			departure: '2018-11-19T08:01:00+0200',
+			departureDelay: 60,
+			destination: '234',
+			arrival: '2018-11-19T08:32:00+0200',
+			departureDelay: 120,
+			line: someLine,
+			direction: 'foo'
+		}]
+	}
+	const j2 = {
+		type: 'journey',
+		id: 'journey-2',
+		legs: [{
+			origin: '123',
+			departure: '2018-11-19T10:00:00+0200',
+			destination: '543',
+			arrival: '2018-11-19T10:15:00+0200',
+			line: someLine,
+			direction: 'foo'
+		}, {
+			origin: '543',
+			departure: '2018-11-19T10:20:00+0200',
+			destination: '234',
+			arrival: '2018-11-19T10:30:00+0200',
+			line: someLine,
+			direction: 'foo'
+		}]
+	}
+	const hafas = withMocks({
+		journeys: (from, to, opt = {}) => Promise.resolve([j1, j2])
+	})
+
+	t.plan(2)
+	let i = 0
+	// todo: listen for `leg`
+	// todo: listen for `stopover`
+	const emitter = listenFor('journey', (journey) => {
+		const expected = i++ === 0 ? j1 : j2
+		t.deepEqual(journey, expected)
+	})
+	const observed = observe(hafas, emitter, {journeys: true})
+	observed.journeys('123', '234').catch(t.ifError)
+})
+
+test('refreshJourney', (t) => {
+	const j = {
+		type: 'journey',
+		id: 'journey-1',
+		legs: [{
+			origin: '123',
+			departure: '2018-11-19T08:01:00+0200',
+			departureDelay: 60,
+			destination: '234',
+			arrival: '2018-11-19T08:32:00+0200',
+			departureDelay: 120,
+			line: someLine,
+			direction: 'foo'
+		}]
+	}
+	const hafas = withMocks({
+		refreshJourney: (id, opt = {}) => Promise.resolve(j)
+	})
+
+	t.plan(1)
+	let i = 0
+	// todo: listen for `leg`
+	// todo: listen for `stopover`
+	const emitter = listenFor('journey', (journey) => {
+		t.deepEqual(journey, j)
+	})
+	const observed = observe(hafas, emitter, {journeys: true})
+	observed.refreshJourney('1').catch(t.ifError)
+})
+
+test('trip', (t) => {
+	const t1 = {
+		type: 'trip',
+		id: 'trip-1',
+		line: someLine,
+		direction: 'foo',
+		stopovers: [{
+			origin: '123',
+			departure: '2018-11-19T08:01:00+0200',
+			destination: '234',
+			arrival: '2018-11-19T08:05:00+0200'
+		}, {
+			origin: '234',
+			departure: '2018-11-19T08:06:00+0200',
+			destination: '345',
+			arrival: '2018-11-19T08:10:00+0200'
+		}]
+	}
+	const hafas = withMocks({
+		trip: (id, lineName, opt = {}) => Promise.resolve(t1)
+	})
+
+	t.plan(1)
+	let i = 0
+	// todo: listen for `leg`
+	// todo: listen for `stopover`
+	const emitter = listenFor('trip', (trip) => {
+		t.deepEqual(trip, t1)
+	})
+	const observed = observe(hafas, emitter, {trip: true})
+	observed.trip('1').catch(t.ifError)
+})
+
+test('radar', (t) => {
+	const m1 = {
+		location: {type: 'location', latitude: 1.23, longitude: 2.34},
+		line: someLine,
+		direction: 'foo',
+		trip: 'trip-123',
+		nextStops: [{
+			stop: '123',
+			arrival: '2018-11-19T08:05:00+0200',
+			departure: '2018-11-19T08:01:00+0200'
+		}, {
+			stop: '234',
+			arrival: '2018-11-19T08:06:00+0200',
+			departure: '2018-11-19T08:10:00+0200'
+		}]
+	}
+	const m2 = {
+		location: {type: 'location', latitude: 1.22, longitude: 2.33},
+		line: someLine,
+		direction: 'bar',
+		trip: 'trip-543',
+		nextStops: [{
+			stop: '234',
+			arrival: '2018-11-19T08:05:00+0200',
+			departure: '2018-11-19T08:01:00+0200'
+		}, {
+			stop: '123',
+			arrival: '2018-11-19T08:06:00+0200',
+			departure: '2018-11-19T08:10:00+0200'
+		}]
+	}
+	const hafas = withMocks({
+		radar: (bbox, opt = {}) => Promise.resolve([m1, m2])
+	})
+
+	t.plan(2)
+	let i = 0
+	// todo: listen for `stopover`
+	const emitter = listenFor('movement', (movement) => {
+		const expected = i++ === 0 ? m1 : m2
+		t.deepEqual(movement, expected)
+	})
+	const observed = observe(hafas, emitter, {radar: true})
+	observed.radar({
+		north: 1.34, south: 1.12,
+		west: 2.23, east: 2.45
+	}).catch(t.ifError)
 })
