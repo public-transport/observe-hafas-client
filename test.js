@@ -307,3 +307,22 @@ test('radar', (t) => {
 		west: 2.23, east: 2.45
 	}).catch(t.ifError)
 })
+
+const voltastr = '900000007103'
+test('unmocked smoke test: departures', (t) => {
+	let nrOfDeps = 0
+	const emitter = new EventEmitter()
+	emitter.on('departure', (dep) => {
+		nrOfDeps++
+		t.ok(dep)
+		t.ok(dep.stop)
+		t.ok(dep.line)
+	})
+	const observed = observe(hafasClient, emitter, {departures: true})
+	observed.departures(voltastr)
+	.then((deps) => {
+		t.equal(nrOfDeps, deps.length, 'less events than results')
+		t.end()
+	})
+	.catch(t.ifError)
+})
