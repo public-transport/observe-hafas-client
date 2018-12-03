@@ -13,9 +13,23 @@ const withMocks = (mocks) => {
 	Object.assign(facade, mocks)
 	return facade
 }
-const listenFor = (eventName, fn) => {
+const expectEvents = (test, expectedByEvent) => {
 	const emitter = new EventEmitter()
-	emitter.on(eventName, fn)
+	const counts = Object.create(null)
+	Object.entries(expectedByEvent).forEach(([eventName, {expected, assert}]) => {
+		if (!assert) {
+			assert = (actual, expected, i) => {
+				test.equal(actual, expected, eventName + ' nr ' + i)
+			}
+		}
+
+		counts[eventName] = 0
+		emitter.on(eventName, (actual) => {
+			const count = counts[eventName]++
+			if (count > expected.length) t.fail(`too many ${eventName} events`)
+			assert(actual, expected[count], count)
+		})
+	})
 	return emitter
 }
 
@@ -63,14 +77,18 @@ test('departures', (t) => {
 
 	t.plan(2 * 6)
 	let i = 0
-	const emitter = listenFor('departure', (dep) => {
-		const expected = i++ === 0 ? dep1 : dep2
-		t.ok(dep)
-		t.equal(dep.tripId, expected.tripId)
-		t.equal(dep.stop, expected.stop)
-		t.equal(dep.when, expected.when)
-		t.equal(dep.delay, expected.delay)
-		t.equal(dep.line, expected.line)
+	const emitter = expectEvents(t, {
+		departure: {
+			expected: [dep1, dep2],
+			assert: (dep, expected) => {
+				t.ok(dep)
+				t.equal(dep.tripId, expected.tripId)
+				t.equal(dep.stop, expected.stop)
+				t.equal(dep.when, expected.when)
+				t.equal(dep.delay, expected.delay)
+				t.equal(dep.line, expected.line)
+			}
+		}
 	})
 	const observed = observe(hafas, emitter, {departures: true})
 	observed.departures('321').catch(t.ifError)
@@ -97,14 +115,18 @@ test('arrivals', (t) => {
 
 	t.plan(2 * 6)
 	let i = 0
-	const emitter = listenFor('arrival', (arr) => {
-		const expected = i++ === 0 ? arr1 : arr2
-		t.ok(arr)
-		t.equal(arr.tripId, expected.tripId)
-		t.equal(arr.stop, expected.stop)
-		t.equal(arr.when, expected.when)
-		t.equal(arr.delay, expected.delay)
-		t.equal(arr.line, expected.line)
+	const emitter = expectEvents(t, {
+		arrival: {
+			expected: [arr1, arr2],
+			assert: (arr, expected) => {
+				t.ok(arr)
+				t.equal(arr.tripId, expected.tripId)
+				t.equal(arr.stop, expected.stop)
+				t.equal(arr.when, expected.when)
+				t.equal(arr.delay, expected.delay)
+				t.equal(arr.line, expected.line)
+			}
+		}
 	})
 	const observed = observe(hafas, emitter, {arrivals: true})
 	observed.arrivals('321').catch(t.ifError)
@@ -149,12 +171,10 @@ test('journeys', (t) => {
 	})
 
 	t.plan(2)
-	let i = 0
 	// todo: listen for `leg`
 	// todo: listen for `stopover`
-	const emitter = listenFor('journey', (journey) => {
-		const expected = i++ === 0 ? j1 : j2
-		t.deepEqual(journey, expected)
+	const emitter = expectEvents(t, {
+		journey: {expected: [j1, j2]}
 	})
 	const observed = observe(hafas, emitter, {journeys: true})
 	observed.journeys('123', '234').catch(t.ifError)
@@ -180,11 +200,10 @@ test('refreshJourney', (t) => {
 	})
 
 	t.plan(1)
-	let i = 0
 	// todo: listen for `leg`
 	// todo: listen for `stopover`
-	const emitter = listenFor('journey', (journey) => {
-		t.deepEqual(journey, j)
+	const emitter = expectEvents(t, {
+		journey: {expected: [j]}
 	})
 	const observed = observe(hafas, emitter, {journeys: true})
 	observed.refreshJourney('1').catch(t.ifError)
@@ -213,11 +232,10 @@ test('trip', (t) => {
 	})
 
 	t.plan(1)
-	let i = 0
 	// todo: listen for `leg`
 	// todo: listen for `stopover`
-	const emitter = listenFor('trip', (trip) => {
-		t.deepEqual(trip, t1)
+	const emitter = expectEvents(t, {
+		trip: {expected: [t1]}
 	})
 	const observed = observe(hafas, emitter, {trips: true})
 	observed.trip('1').catch(t.ifError)
@@ -259,11 +277,9 @@ test('radar', (t) => {
 	})
 
 	t.plan(2)
-	let i = 0
 	// todo: listen for `stopover`
-	const emitter = listenFor('movement', (movement) => {
-		const expected = i++ === 0 ? m1 : m2
-		t.deepEqual(movement, expected)
+	const emitter = expectEvents(t, {
+		movement: {expected: [m1, m2]}
 	})
 	const observed = observe(hafas, emitter, {movements: true})
 	observed.radar({
