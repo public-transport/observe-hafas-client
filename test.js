@@ -170,11 +170,11 @@ test('journeys', (t) => {
 		journeys: (from, to, opt = {}) => Promise.resolve([j1, j2])
 	})
 
-	t.plan(2)
-	// todo: listen for `leg`
+	t.plan(2 + j1.legs.length + j2.legs.length)
 	// todo: listen for `stopover`
 	const emitter = expectEvents(t, {
-		journey: {expected: [j1, j2]}
+		journey: {expected: [j1, j2]},
+		leg: {expected: [...j1.legs, ...j2.legs]}
 	})
 	const observed = observe(hafas, emitter, {journeys: true})
 	observed.journeys('123', '234').catch(t.ifError)
@@ -199,11 +199,11 @@ test('refreshJourney', (t) => {
 		refreshJourney: (id, opt = {}) => Promise.resolve(j)
 	})
 
-	t.plan(1)
-	// todo: listen for `leg`
+	t.plan(1 + j.legs.length)
 	// todo: listen for `stopover`
 	const emitter = expectEvents(t, {
-		journey: {expected: [j]}
+		journey: {expected: [j]},
+		leg: {expected: j.legs}
 	})
 	const observed = observe(hafas, emitter, {journeys: true})
 	observed.refreshJourney('1').catch(t.ifError)
@@ -231,11 +231,21 @@ test('trip', (t) => {
 		trip: (id, lineName, opt = {}) => Promise.resolve(t1)
 	})
 
-	t.plan(1)
-	// todo: listen for `leg`
-	// todo: listen for `stopover`
+	t.plan(1 + 7 * t1.stopovers.length)
 	const emitter = expectEvents(t, {
-		trip: {expected: [t1]}
+		trip: {expected: [t1]},
+		stopover: {
+			expected: t1.stopovers,
+			assert: (st, expected) => {
+				t.ok(st)
+				t.equal(st.origin, expected.origin)
+				t.equal(st.departure, expected.departure)
+				t.equal(st.destination, expected.destination)
+				t.equal(st.arrival, expected.arrival)
+				t.equal(st.tripId, t1.id)
+				t.equal(st.line, t1.line)
+			}
+		}
 	})
 	const observed = observe(hafas, emitter, {trips: true})
 	observed.trip('1').catch(t.ifError)
@@ -276,10 +286,20 @@ test('radar', (t) => {
 		radar: (bbox, opt = {}) => Promise.resolve([m1, m2])
 	})
 
-	t.plan(2)
-	// todo: listen for `stopover`
+	t.plan(2 + 6 * (m1.nextStops.length + m2.nextStops.length))
 	const emitter = expectEvents(t, {
-		movement: {expected: [m1, m2]}
+		movement: {expected: [m1, m2]},
+		stopover: {
+			expected: [...m1.nextStops, ...m2.nextStops],
+			assert: (st, expected) => {
+				t.ok(st)
+				t.equal(st.stop, expected.stop)
+				t.equal(st.arrival, expected.arrival)
+				t.equal(st.departure, expected.departure)
+				t.ok([m1.trip, m2.trip].includes(st.tripId)) // todo
+				t.equal(st.line, someLine)
+			}
+		}
 	})
 	const observed = observe(hafas, emitter, {movements: true})
 	observed.radar({
