@@ -1,7 +1,7 @@
 {
 	"name": "observe-hafas-client",
 	"description": "Observe all departures/arrivals returned by hafas-client.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "index.js",
 	"files": [
 		"index.js",

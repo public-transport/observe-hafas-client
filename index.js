@@ -1,6 +1,5 @@
 'use strict'
 
-// todo: flags for watchers
 const observeHafasClient = (hafas, emitter, watch) => {
 	const onJourney = (journey) => {
 		emitter.emit('journey', journey)
@@ -94,8 +93,8 @@ const observeHafasClient = (hafas, emitter, watch) => {
 					for (const stopover of movement.nextStops) {
 						emitter.emit('stopover', {
 							...stopover,
-							line: stopover.line,
-							tripId: stopover.trip
+							line: movement.line,
+							tripId: movement.trip
 						})
 					}
 				}
