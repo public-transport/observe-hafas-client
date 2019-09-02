@@ -104,6 +104,9 @@ const observeHafasClient = (hafas, emitter, watch) => {
 		wrapper.radar = observedRadar
 	}
 
+	// todo: watch.stops, watch.pois, watch.stations, watch.locations
+	// todo: locations(), station(), reachableFrom()
+
 	return wrapper
 }
 

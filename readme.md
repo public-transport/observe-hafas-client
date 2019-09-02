@@ -26,9 +26,9 @@ const observe = require('observe-hafas-client')
 const hafas = createHafas('my-awesome-program')
 
 // set up observing
-const obverser = new EventEmitter()
-obverser.on('departure', console.log)
-const observedHafas = observe(hafasClient, {departures: true})
+const observer = new EventEmitter()
+observer.on('departure', console.log)
+const observedHafas = observe(hafasClient, observer, {departures: true})
 
 // query data from HAFAS
 observedHafas.departures('8011160') // Berlin Hbf
