@@ -1,13 +1,14 @@
 {
 	"name": "observe-hafas-client",
 	"description": "Observe all departures/arrivals returned by hafas-client.",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"main": "index.js",
 	"files": [
 		"index.js",
 		"example.js"
 	],
 	"keywords": [
+		"hafas",
 		"hafas-client",
 		"departure",
 		"arrival",
@@ -15,9 +16,9 @@
 		"realtime"
 	],
 	"author": "Jannis R <mail@jannisr.de>",
-	"homepage": "https://github.com/derhuerst/observe-hafas-client",
-	"repository": "derhuerst/observe-hafas-client",
-	"bugs": "https://github.com/derhuerst/observe-hafas-client/issues",
+	"homepage": "https://github.com/public-transport/observe-hafas-client",
+	"repository": "public-transport/observe-hafas-client",
+	"bugs": "https://github.com/public-transport/observe-hafas-client/issues",
 	"license": "ISC",
 	"engines": {
 		"node": ">=8"
